@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget Planner — Monthly Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --forest:    #1a3a2a;
+      --pine:      #234d38;
+      --moss:      #2e6b4a;
+      --sage:      #4a9068;
+      --mist:      #d4ead9;
+      --white:     #f8faf9;
+      --paper:     #eef5f0;
+      --ink:       #0d1f16;
+      --mid:       #5a7a66;
+      --border:    #c4ddc9;
+      --red:       #c0392b;
+      --amber:     #b7791f;
+      --shadow:    0 2px 12px rgba(26,58,42,.10);
+      --shadow-lg: 0 8px 32px rgba(26,58,42,.14);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ────────────────────────────────── */
+    header {
+      background: var(--forest);
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,.25);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--sage);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+    }
+    .logo-icon svg { width: 18px; height: 18px; }
+    .logo-name {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: .02em;
+    }
+    .header-month {
+      font-family: 'DM Mono', monospace;
+      font-size: .8rem;
+      color: var(--mist);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* ── LAYOUT ────────────────────────────────── */
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    .page-title {
+      font-size: 1.65rem;
+      font-weight: 600;
+      color: var(--forest);
+      margin-bottom: .35rem;
+    }
+    .page-subtitle {
+      font-size: .9rem;
+      color: var(--mid);
+      margin-bottom: 2.2rem;
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── CARD ──────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.6rem 1.8rem;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── INCOME HERO ───────────────────────────── */
+    .income-hero {
+      background: var(--forest);
+      color: var(--white);
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .income-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 80% 50%, var(--moss) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .income-hero .card-title { color: var(--mist); }
+    .income-hero .card-title::after { background: rgba(255,255,255,.12); }
+    .income-label {
+      font-size: .8rem;
+      color: var(--mist);
+      margin-bottom: .5rem;
+    }
+    .income-display {
+      font-family: 'DM Mono', monospace;
+      font-size: 3rem;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 1.4rem;
+      letter-spacing: -.02em;
+    }
+    .income-display span { font-size: 1.6rem; opacity: .6; vertical-align: super; margin-right: .1em; }
+
+    /* ── FORM INPUTS ───────────────────────────── */
+    .field { margin-bottom: 1.15rem; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--mid);
+      margin-bottom: .4rem;
+    }
+    label .hint {
+      font-size: .72rem;
+      font-weight: 400;
+      color: var(--border);
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap .prefix {
+      position: absolute;
+      left: .85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'DM Mono', monospace;
+      font-size: .9rem;
+      color: var(--mid);
+      pointer-events: none;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: .65rem .85rem .65rem 1.7rem;
+      font-family: 'DM Mono', monospace;
+      font-size: .95rem;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s, background .18s;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(74,144,104,.15);
+      background: var(--white);
+    }
+    .income-hero input[type="number"] {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.2);
+      color: var(--white);
+      font-size: 1.05rem;
+    }
+    .income-hero input[type="number"]:focus {
+      background: rgba(255,255,255,.13);
+      border-color: var(--mist);
+      box-shadow: 0 0 0 3px rgba(212,234,217,.12);
+    }
+    .income-hero .prefix { color: var(--mist); }
+
+    /* ── CATEGORY ROWS ─────────────────────────── */
+    .category-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .category-row:last-of-type { margin-bottom: 0; }
+
+    /* ── EXPENSE PILL ──────────────────────────── */
+    .expense-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      margin-bottom: .55rem;
+    }
+    .expense-icon svg { width: 16px; height: 16px; }
+    .housing .expense-icon   { background: #e8f4f0; }
+    .food .expense-icon      { background: #fef3e2; }
+    .transport .expense-icon { background: #eaf0fb; }
+    .entertainment .expense-icon { background: #f3e8fb; }
+    .health .expense-icon    { background: #fce8e8; }
+    .savings .expense-icon   { background: #e8fce8; }
+
+    .expense-field label {
+      justify-content: flex-start;
+      gap: .4rem;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: .35rem;
+    }
+
+    /* ── SUMMARY SIDEBAR ───────────────────────── */
+    .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .balance-card {
+      background: var(--forest);
+      border: none;
+      text-align: center;
+      padding: 2rem 1.8rem;
+    }
+    .balance-label {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--mist);
+      margin-bottom: .6rem;
+    }
+    .balance-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 2.6rem;
+      font-weight: 500;
+      letter-spacing: -.02em;
+      color: var(--white);
+      line-height: 1;
+      transition: color .3s;
+    }
+    .balance-amount.negative { color: #ff8080; }
+    .balance-amount.warning  { color: #ffd080; }
+    .balance-status {
+      font-size: .78rem;
+      color: var(--mist);
+      margin-top: .5rem;
+      min-height: 1.1em;
+      transition: color .3s;
+    }
+
+    /* ── PROGRESS BAR ──────────────────────────── */
+    .breakdown-list { list-style: none; }
+    .breakdown-item {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .breakdown-item:last-child { border-bottom: none; }
+    .breakdown-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .breakdown-name {
+      flex: 1;
+      font-size: .82rem;
+      color: var(--ink);
+    }
+    .breakdown-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: .78rem;
+      color: var(--mid);
+    }
+    .breakdown-val {
+      font-family: 'DM Mono', monospace;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--ink);
+      min-width: 62px;
+      text-align: right;
+    }
+    .bar-track {
+      width: 100%;
+      height: 6px;
+      background: var(--paper);
+      border-radius: 99px;
+      margin-top: .3rem;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── TOTALS ────────────────────────────────── */
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .45rem 0;
+      font-size: .84rem;
+    }
+    .totals-row.total-line {
+      border-top: 1.5px solid var(--border);
+      margin-top: .3rem;
+      padding-top: .75rem;
+      font-weight: 600;
+    }
+    .totals-row .lbl { color: var(--mid); }
+    .totals-row .val {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    /* ── RESET BUTTON ──────────────────────────── */
+    .btn-reset {
+      display: block;
+      width: 100%;
+      padding: .7rem;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--mid);
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .btn-reset:hover {
+      border-color: var(--sage);
+      color: var(--moss);
+      background: var(--paper);
+    }
+
+    /* ── RING CHART ────────────────────────────── */
+    .ring-wrap {
+      display: flex;
+      justify-content: center;
+      padding: .5rem 0 1rem;
+    }
+    svg.ring { overflow: visible; }
+    .ring-center-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 500;
+      fill: var(--ink);
+    }
+    .ring-center-sub {
+      font-size: .62rem;
+      fill: var(--mid);
+    }
+
+    /* ── RESPONSIVE ────────────────────────────── */
+    @media (max-width: 860px) {
+      .grid-main { grid-template-columns: 1fr; }
+      .sidebar { order: -1; flex-direction: row; flex-wrap: wrap; }
+      .balance-card { flex: 1 1 220px; }
+    }
+    @media (max-width: 520px) {
+      header { padding: 0 1rem; }
+      .page { padding: 1.5rem 1rem 3rem; }
+      .category-row { grid-template-columns: 1fr; }
+      .sidebar { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="9" width="3" height="7" rx="1" fill="white" opacity=".7"/>
+        <rect x="7.5" y="5" width="3" height="11" rx="1" fill="white"/>
+        <rect x="13" y="2" width="3" height="14" rx="1" fill="white" opacity=".7"/>
+      </svg>
+    </div>
+    <span class="logo-name">Ledger</span>
+  </a>
+  <span class="header-month" id="headerMonth"></span>
+</header>
+
+<div class="page">
+  <h1 class="page-title">Monthly Budget Planner</h1>
+  <p class="page-subtitle">Enter your income and expenses — your balance updates automatically.</p>
+
+  <div class="grid-main">
+
+    <!-- LEFT: INPUT PANEL -->
+    <div>
+
+      <!-- Income -->
+      <div class="card income-hero" style="margin-bottom:1.2rem;">
+        <div class="card-title">Monthly Income</div>
+        <p class="income-label">Total take-home pay this month</p>
+        <div class="income-display"><span>£</span><span id="incomeDisplay">0</span></div>
+        <div class="field">
+          <div class="input-wrap">
+            <span class="prefix">£</span>
+            <input type="number" id="income" placeholder="0.00" min="0" step="0.01" value=""/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expenses -->
+      <div class="card">
+        <div class="card-title">Expenses</div>
+
+        <div class="category-row">
+          <div class="expense-field housing">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M1 8L8 2l7 6M3 7v6h4v-3h2v3h4V7" stroke="#2e6b4a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <label for="housing">Housing</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="housing" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+          <div class="expense-field food">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="9" r="5" stroke="#b7791f" stroke-width="1.5"/><path d="M8 4V2M5.5 5.5L4 4M10.5 5.5L12 4" stroke="#b7791f" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <label for="food">Food & Groceries</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="food" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-row">
+          <div class="expense-field transport">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="14" height="7" rx="2" stroke="#3b6ab5" stroke-width="1.5"/><circle cx="4.5" cy="12" r="1.2" stroke="#3b6ab5" stroke-width="1.2"/><circle cx="11.5" cy="12" r="1.2" stroke="#3b6ab5" stroke-width="1.2"/><path d="M1 8h14" stroke="#3b6ab5" stroke-width="1.2"/></svg>
+            </div>
+            <label for="transport">Transport</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="transport" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+          <div class="expense-field entertainment">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#8b5cf6" stroke-width="1.5"/><path d="M6 6l4 2-4 2V6z" fill="#8b5cf6"/></svg>
+            </div>
+            <label for="entertainment">Entertainment</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="entertainment" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-row">
+          <div class="expense-field health">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <label for="health">Health & Wellness</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="health" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+          <div class="expense-field savings">
+            <div class="expense-icon">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M3 10c0-2.5 2-4.5 5-4.5s5 2 5 4.5v.5H3v-.5z" stroke="#1a7a4a" stroke-width="1.5"/><circle cx="8" cy="4.5" r="1.5" stroke="#1a7a4a" stroke-width="1.5"/></svg>
+            </div>
+            <label for="savings">Savings</label>
+            <div class="input-wrap">
+              <span class="prefix">£</span>
+              <input type="number" id="savings" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /card -->
+
+      <!-- Totals summary under inputs -->
+      <div class="card" style="margin-top:1.2rem;">
+        <div class="card-title">Summary</div>
+        <div class="totals-row"><span class="lbl">Total Income</span><span class="val" id="sumIncome">£0.00</span></div>
+        <div class="totals-row"><span class="lbl">Total Expenses</span><span class="val" id="sumExpenses">£0.00</span></div>
+        <div class="totals-row total-line"><span class="lbl">Remaining Balance</span><span class="val" id="sumBalance" style="color:var(--moss);">£0.00</span></div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- RIGHT: SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Balance card -->
+      <div class="card balance-card">
+        <div class="balance-label">Remaining Balance</div>
+        <div class="balance-amount" id="bigBalance">£0.00</div>
+        <div class="balance-status" id="balanceStatus">Enter your income to get started.</div>
+      </div>
+
+      <!-- Donut chart -->
+      <div class="card">
+        <div class="card-title">Allocation</div>
+        <div class="ring-wrap">
+          <svg class="ring" width="170" height="170" viewBox="0 0 170 170" id="ringChart">
+            <circle cx="85" cy="85" r="62" fill="none" stroke="var(--paper)" stroke-width="22"/>
+            <!-- segments inserted by JS -->
+            <text x="85" y="81" text-anchor="middle" class="ring-center-label" id="ringPct">0%</text>
+            <text x="85" y="97" text-anchor="middle" class="ring-center-sub">spent</text>
+          </svg>
+        </div>
+
+        <ul class="breakdown-list" id="breakdownList">
+          <!-- inserted by JS -->
+        </ul>
+      </div>
+
+      <!-- Reset -->
+      <button class="btn-reset" id="resetBtn">Reset all fields</button>
+
+    </div><!-- /sidebar -->
+  </div><!-- /grid-main -->
+</div><!-- /page -->
+
+<script>
+  // ── Config ─────────────────────────────────────
+  const CATEGORIES = [
+    { id: 'housing',       label: 'Housing',         color: '#2e6b4a' },
+    { id: 'food',          label: 'Food & Groceries', color: '#b7791f' },
+    { id: 'transport',     label: 'Transport',        color: '#3b6ab5' },
+    { id: 'entertainment', label: 'Entertainment',    color: '#8b5cf6' },
+    { id: 'health',        label: 'Health',           color: '#c0392b' },
+    { id: 'savings',       label: 'Savings',          color: '#1a7a4a' },
+  ];
+  const R = 62, CIRC = 2 * Math.PI * R;
+
+  // ── DOM refs ────────────────────────────────────
+  const incomeEl     = document.getElementById('income');
+  const incomeDisp   = document.getElementById('incomeDisplay');
+  const bigBalance   = document.getElementById('bigBalance');
+  const balStat      = document.getElementById('balanceStatus');
+  const sumIncome    = document.getElementById('sumIncome');
+  const sumExpenses  = document.getElementById('sumExpenses');
+  const sumBalance   = document.getElementById('sumBalance');
+  const ringChart    = document.getElementById('ringChart');
+  const ringPct      = document.getElementById('ringPct');
+  const breakdownList= document.getElementById('breakdownList');
+  const resetBtn     = document.getElementById('resetBtn');
+
+  // ── Helpers ─────────────────────────────────────
+  const fmt = n => '£' + Math.abs(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const val  = id  => parseFloat(document.getElementById(id).value) || 0;
+
+  // ── Header month ────────────────────────────────
+  const now = new Date();
+  document.getElementById('headerMonth').textContent =
+    now.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+
+  // ── Ring chart ──────────────────────────────────
+  function buildRing(segments) {
+    // remove old segments
+    ringChart.querySelectorAll('.seg').forEach(el => el.remove());
+    let offset = 0;
+    segments.forEach(({ pct, color }) => {
+      if (pct <= 0) return;
+      const dash = (pct / 100) * CIRC;
+      const gap  = CIRC - dash;
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', 'seg');
+      circle.setAttribute('cx', 85);
+      circle.setAttribute('cy', 85);
+      circle.setAttribute('r', R);
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke', color);
+      circle.setAttribute('stroke-width', 22);
+      circle.setAttribute('stroke-dasharray', `${dash} ${gap}`);
+      circle.setAttribute('stroke-dashoffset', -offset * CIRC / 100);
+      circle.setAttribute('transform', 'rotate(-90 85 85)');
+      ringChart.insertBefore(circle, ringPct.parentNode ? ringPct : null);
+      ringChart.insertBefore(circle, ringChart.querySelector('text'));
+      offset += pct;
+    });
+  }
+
+  // ── Breakdown list ──────────────────────────────
+  function buildBreakdown(cats, income) {
+    breakdownList.innerHTML = '';
+    cats.forEach(({ label, color, amount }) => {
+      const pct = income > 0 ? Math.min(100, (amount / income) * 100) : 0;
+      const li = document.createElement('li');
+      li.className = 'breakdown-item';
+      li.innerHTML = `
+        <span class="breakdown-dot" style="background:${color}"></span>
+        <span class="breakdown-name">${label}</span>
+        <span class="breakdown-pct">${pct.toFixed(1)}%</span>
+        <span class="breakdown-val">${fmt(amount)}</span>
+      `;
+      const track = document.createElement('div');
+      track.style.cssText = 'grid-column:1/-1';
+      const barWrap = document.createElement('div');
+      barWrap.className = 'bar-track';
+      barWrap.style.cssText = 'margin-left:18px;';
+      const fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      fill.style.width = pct + '%';
+      fill.style.background = color;
+      barWrap.appendChild(fill);
+      // append bar after list item content but inside the li via a wrapper div trick
+      li.style.flexWrap = 'wrap';
+      const barHolder = document.createElement('div');
+      barHolder.style.cssText = 'width:100%; padding-left:18px; margin-top:4px;';
+      barHolder.appendChild(barWrap);
+      li.appendChild(barHolder);
+      breakdownList.appendChild(li);
+    });
+  }
+
+  // ── Main calculator ─────────────────────────────
+  function recalc() {
+    const income   = val('income');
+    const expenses = CATEGORIES.map(c => ({ ...c, amount: val(c.id) }));
+    const totalExp = expenses.reduce((s, c) => s + c.amount, 0);
+    const balance  = income - totalExp;
+    const spentPct = income > 0 ? Math.min(100, (totalExp / income) * 100) : 0;
+
+    // Income display (hero)
+    incomeDisp.textContent = income.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+    // Big balance
+    const balStr = (balance < 0 ? '−' : '') + fmt(balance);
+    bigBalance.textContent = balStr;
+    bigBalance.className = 'balance-amount' + (balance < 0 ? ' negative' : balance < income * 0.1 && income > 0 ? ' warning' : '');
+
+    // Status text
+    if (income === 0) {
+      balStat.textContent = 'Enter your income to get started.';
+    } else if (balance < 0) {
+      balStat.textContent = `Over budget by ${fmt(balance)}.`;
+    } else if (spentPct >= 90) {
+      balStat.textContent = `${spentPct.toFixed(0)}% of income allocated.`;
+    } else if (totalExp === 0) {
+      balStat.textContent = 'No expenses entered yet.';
+    } else {
+      balStat.textContent = `${spentPct.toFixed(0)}% of income allocated. Looking good!`;
+    }
+
+    // Summary row
+    sumIncome.textContent   = fmt(income);
+    sumExpenses.textContent = fmt(totalExp);
+    sumBalance.textContent  = (balance < 0 ? '−' : '') + fmt(balance);
+    sumBalance.style.color  = balance < 0 ? 'var(--red)' : balance < income * 0.1 && income > 0 ? 'var(--amber)' : 'var(--moss)';
+
+    // Ring chart
+    const segments = expenses.map(c => ({
+      pct: income > 0 ? Math.min(100, (c.amount / income) * 100) : 0,
+      color: c.color
+    }));
+    buildRing(segments);
+    ringPct.textContent = spentPct.toFixed(0) + '%';
+
+    // Breakdown
+    buildBreakdown(expenses, income);
+  }
+
+  // ── Listeners ───────────────────────────────────
+  ['income', ...CATEGORIES.map(c => c.id)].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    ['income', ...CATEGORIES.map(c => c.id)].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    recalc();
+  });
+
+  // ── Init ────────────────────────────────────────
+  recalc();
+</script>
+</body>
+</html>
